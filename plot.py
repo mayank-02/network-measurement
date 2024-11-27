@@ -87,10 +87,7 @@ ax1_ssthresh.set_ylim(0, max(ssthresh_values) * 1.1)  # Start from 0
 
 # Add mean RTT and stddev RTT to the legend (without plotting them)
 rtt_label = f"Mean RTT: {mean_rtt:.2f} ms, σ RTT: {stddev_rtt:.2f} ms"
-handles_cwnd = [line_cwnd]
-handles_ssthresh = [line_ssthresh]
-ax1.legend(handles=handles_cwnd + handles_ssthresh + [plt.Line2D([0], [0], color="none", label=rtt_label)],
-           loc="upper right", fontsize=10)
+ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="upper right", fontsize=10)
 
 # ---- Second subplot: Throughput ----
 ax2.set_title("Throughput Over Time")
@@ -102,9 +99,6 @@ line_throughput, = ax2.plot(time_values, throughput_values, linestyle='-', linew
 ax2.tick_params(axis="y")
 ax2.grid(True)
 ax2.set_ylim(0, max(throughput_values) * 1.1)  # Start from 0
-
-# Add legend
-ax2.legend(handles=[line_throughput], loc="upper right", fontsize=10)
 
 # Show the plots
 plt.show()
