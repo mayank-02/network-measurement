@@ -62,7 +62,7 @@ This project analyzes and compares the behavior of two congestion control algori
 1. Install the required tools on both client and server:
     ```bash
     sudo apt -y update
-    sudo apt install -y iperf3
+    sudo apt install -y iperf3 python3-pip
     ```
 
 2. Start the iperf3 server on the server machine:
@@ -74,11 +74,11 @@ This project analyzes and compares the behavior of two congestion control algori
     - Extract the interface name:
       ```bash
       ip link show
-      ```bash
+      ```
     - Add a delay of 20ms:
       ```bash
       sudo tc qdisc add dev <interface> root netem delay 20ms
-      ```bash
+      ```
     - Introduce packet loss as desired:
       ```bash
       sudo tc qdisc change dev <interface> root netem delay 20ms loss 0.005%
