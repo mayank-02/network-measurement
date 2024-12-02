@@ -20,7 +20,7 @@ rtt_values = []
 try:
     with open(log_file, "r") as file:
         for line in file:
-            if "cwnd:" in line:# and " ssthresh:" in line:
+            if "cwnd:" in line: # and " ssthresh:" in line:
                 # Parse CWND
                 try:
                     cwnd_index = line.index("cwnd:")
@@ -28,14 +28,6 @@ try:
                     cwnd_values.append(cwnd_value)
                 except (ValueError, IndexError):
                     print(f"Failed to parse CWND in line: {line.strip()}")
-
-                # Parse SSTHRESH
-                # try:
-                #     ssthresh_index = line.index(" ssthresh:")
-                #     ssthresh_value = int(line[ssthresh_index + 10:].split()[0])
-                #     ssthresh_values.append(ssthresh_value)
-                # except (ValueError, IndexError):
-                #     print(f"Failed to parse SSTHRESH in line: {line.strip()}")
 
                 # Parse delivery_rate (Throughput)
                 try:
@@ -66,29 +58,22 @@ mean_rtt = np.mean(rtt_values) if rtt_values else 0
 stddev_rtt = np.std(rtt_values) if rtt_values else 0
 
 # Create the figure and subplots with additional space between them
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 12), gridspec_kw={'hspace': 0.1}, constrained_layout=True)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 6), gridspec_kw={'hspace': 0.1}, constrained_layout=True)
 
 # ---- First subplot: CWND and SSTHRESH ----
 ax1.set_title("CWND Over Time")
 ax1.set_xlabel("Time (seconds)")
 
 # Plot CWND on the primary y-axis
-ax1.set_ylabel("CWND (in MSS)", color="#1f77b4")
+ax1.set_ylabel("CWND (in MSS)")
 line_cwnd, = ax1.plot(time_values, cwnd_values, linestyle='-', linewidth=2, color="#1f77b4", label="CWND")
-ax1.tick_params(axis="y", labelcolor="#1f77b4")
+ax1.tick_params(axis="y")
 ax1.grid(True)
 ax1.set_ylim(0, max(cwnd_values) * 1.1)  # Start from 0
 
-# Create a secondary y-axis for SSTHRESH
-# ax1_ssthresh = ax1.twinx()
-# ax1_ssthresh.set_ylabel("SSTHRESH (in MSS)", color="#ff7f0e")
-# line_ssthresh, = ax1_ssthresh.plot(time_values, ssthresh_values, linestyle='--', linewidth=2, color="#ff7f0e", label="SSTHRESH")
-# ax1_ssthresh.tick_params(axis="y", labelcolor="#ff7f0e")
-# ax1_ssthresh.set_ylim(0, max(ssthresh_values) * 1.1)  # Start from 0
-
 # Add mean RTT and stddev RTT to the legend (without plotting them)
 rtt_label = f"Mean RTT: {mean_rtt:.2f} ms, σ RTT: {stddev_rtt:.2f} ms"
-ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="upper right", fontsize=10)
+ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="lower right", fontsize=10)
 
 # ---- Second subplot: Throughput ----
 ax2.set_title("Throughput Over Time")

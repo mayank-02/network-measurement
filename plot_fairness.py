@@ -38,12 +38,11 @@ def parse_iperf_log(log_file):
     return flow_dfs
 
 
-def plot_throughput(flow_dfs, algorithm):
-    plt.figure(figsize=(10, 6))
+def plot_throughput(flow_dfs):
+    plt.figure(figsize=(7, 4))
     flow_labels = {5201: "Flow 1", 5202: "Flow 2", 5203: "Flow 3"}
     for port, df in flow_dfs.items():
         plt.plot(df["Time (s)"], df["Throughput (Mbps)"], label=flow_labels[port])
-    plt.title(f"Throughput Over Time for 3 {algorithm} Flows")
     plt.xlabel("Time (s)")
     plt.ylabel("Throughput (Mbps)")
     plt.legend()

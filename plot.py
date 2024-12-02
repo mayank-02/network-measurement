@@ -65,7 +65,7 @@ mean_rtt = np.mean(rtt_values) if rtt_values else 0
 stddev_rtt = np.std(rtt_values) if rtt_values else 0
 
 # Create the figure and subplots with additional space between them
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 12), gridspec_kw={'hspace': 0.1}, constrained_layout=True)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 6), gridspec_kw={'hspace': 0.1}, constrained_layout=True)
 
 # ---- First subplot: CWND and SSTHRESH ----
 ax1.set_title("CWND and SSTHRESH Over Time")
@@ -87,7 +87,7 @@ ax1_ssthresh.set_ylim(0, max(ssthresh_values) * 1.1)  # Start from 0
 
 # Add mean RTT and stddev RTT to the legend (without plotting them)
 rtt_label = f"Mean RTT: {mean_rtt:.2f} ms, σ RTT: {stddev_rtt:.2f} ms"
-ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="upper right", fontsize=10)
+ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="lower right", fontsize=10)
 
 # ---- Second subplot: Throughput ----
 ax2.set_title("Throughput Over Time")
