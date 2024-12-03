@@ -69,6 +69,6 @@ if __name__ == "__main__":
 
     try:
         flow_dfs = parse_iperf_log(log_file)
-        plot_throughput(flow_dfs, algorithm)
+        plot_throughput(flow_dfs)
     except Exception as e:
         print(f"Error processing the log file: {e}")
