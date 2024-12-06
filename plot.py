@@ -3,24 +3,33 @@ import sys
 import numpy as np
 
 # Check if the file name is provided
-if len(sys.argv) != 2:
-    print("Usage: python plot_metrics.py <log_file>")
+if len(sys.argv) != 3:
+    print("Usage: python plot_metrics.py <log_file> <cubic/bbr>")
     sys.exit(1)
 
 # Get the log file name
 log_file = sys.argv[1]
+cca = sys.argv[2]
 
 # Lists to store the extracted data
 cwnd_values = []
 ssthresh_values = []
 throughput_values = []
 rtt_values = []
+timestamps = []
 
 # Parse the log file
 try:
     with open(log_file, "r") as file:
         for line in file:
             if "cwnd:" in line and " ssthresh:" in line:
+                try:
+                    timestamp = float(line.split()[0])  # Extract the first value as timestamp
+                    timestamps.append(timestamp)
+                except (ValueError, IndexError):
+                    print(f"Failed to parse timestamp in line: {line.strip()}")
+                    continue  # Skip this line if timestamp parsing fails
+                
                 # Parse CWND
                 try:
                     cwnd_index = line.index("cwnd:")
@@ -57,8 +66,12 @@ except FileNotFoundError:
     print(f"Error: File '{log_file}' not found.")
     sys.exit(1)
 
-# Scale x-axis values to 0.1-second granularity
-time_values = np.arange(len(cwnd_values)) * 0.1
+# Calculate relative time for x-axis
+if timestamps:
+    relative_time = [(t - timestamps[0]) for t in timestamps]  # Start at t = 0
+else:
+    print("No valid timestamps found. Exiting.")
+    sys.exit(1)
 
 # Calculate mean and stddev of RTT
 mean_rtt = np.mean(rtt_values) if rtt_values else 0
@@ -68,34 +81,34 @@ stddev_rtt = np.std(rtt_values) if rtt_values else 0
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 6), gridspec_kw={'hspace': 0.1}, constrained_layout=True)
 
 # ---- First subplot: CWND and SSTHRESH ----
-ax1.set_title("CWND and SSTHRESH Over Time")
 ax1.set_xlabel("Time (seconds)")
 
-# Plot CWND on the primary y-axis
-ax1.set_ylabel("CWND (in MSS)", color="#1f77b4")
-line_cwnd, = ax1.plot(time_values, cwnd_values, linestyle='-', linewidth=2, color="#1f77b4", label="CWND")
-ax1.tick_params(axis="y", labelcolor="#1f77b4")
+# Plot CWND, SSTHRESH on the primary y-axis
+line_cwnd, = ax1.plot(relative_time, cwnd_values, linestyle='-', linewidth=2, color="#1f77b4", label="CWND")
+# Add mean RTT and stddev RTT to the legend (without plotting them)
+rtt_label = f"Mean RTT: {mean_rtt:.2f} ms, σ RTT: {stddev_rtt:.2f} ms"
+handles_cwnd = [line_cwnd]
+if cca == "cubic":
+    ax1.set_ylabel("CWND and SSTHRESH (in MSS)")
+    line_ssthresh, = ax1.plot(relative_time, ssthresh_values, linestyle='--', linewidth=2, color="#ff7f0e", label="SSTHRESH")
+    handles_ssthresh = [line_ssthresh]
+    ax1.legend(handles=handles_cwnd + handles_ssthresh + [plt.Line2D([0], [0], color="none", label=rtt_label)], loc='upper center', bbox_to_anchor=(0.5, 1.2),
+          fancybox=True, ncol=5)
+else:
+    ax1.set_ylabel("CWND (in MSS)")
+    ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc='upper center', bbox_to_anchor=(0.5, 1.2),
+          fancybox=True, ncol=5)
+
+ax1.tick_params(axis="y")
 ax1.grid(True)
 ax1.set_ylim(0, max(cwnd_values) * 1.1)  # Start from 0
 
-# Create a secondary y-axis for SSTHRESH
-ax1_ssthresh = ax1.twinx()
-ax1_ssthresh.set_ylabel("SSTHRESH (in MSS)", color="#ff7f0e")
-line_ssthresh, = ax1_ssthresh.plot(time_values, ssthresh_values, linestyle='--', linewidth=2, color="#ff7f0e", label="SSTHRESH")
-ax1_ssthresh.tick_params(axis="y", labelcolor="#ff7f0e")
-ax1_ssthresh.set_ylim(0, max(ssthresh_values) * 1.1)  # Start from 0
-
-# Add mean RTT and stddev RTT to the legend (without plotting them)
-rtt_label = f"Mean RTT: {mean_rtt:.2f} ms, σ RTT: {stddev_rtt:.2f} ms"
-ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc="lower right", fontsize=10)
-
 # ---- Second subplot: Throughput ----
-ax2.set_title("Throughput Over Time")
 ax2.set_xlabel("Time (seconds)")
 ax2.set_ylabel("Throughput (Mbps)")
 
 # Plot Throughput
-line_throughput, = ax2.plot(time_values, throughput_values, linestyle='-', linewidth=2, color="#2ca02c", label="Throughput")
+line_throughput, = ax2.plot(relative_time, throughput_values, linestyle='-', linewidth=2, color="#2ca02c", label="Throughput")
 ax2.tick_params(axis="y")
 ax2.grid(True)
 ax2.set_ylim(0, max(throughput_values) * 1.1)  # Start from 0
