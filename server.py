@@ -8,7 +8,7 @@ def health():
 
 @app.route('/large-content', methods=['GET'])
 def serve_html():
-    return send_file('index.html', mimetype='text/html')
+    return send_file('large_file_4gb.html', mimetype='text/html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
