@@ -22,6 +22,7 @@ This project analyzes and compares the behavior of two congestion control algori
 - `ss` tool for TCP socket statistics
 - iperf3
 - Python 3.x
+- `ts` to timestamp command outputs
 
 ## Setup
 
