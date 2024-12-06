@@ -3,13 +3,17 @@ import sys
 import numpy as np
 
 # Check if the file name is provided
-if len(sys.argv) != 3:
-    print("Usage: python plot_metrics.py <log_file> <cubic/bbr>")
+if len(sys.argv) < 3:
+    print("Usage: python plot_metrics.py log_file cubic/bbr [plot_bytes_retrans]")
     sys.exit(1)
 
 # Get the log file name
 log_file = sys.argv[1]
 cca = sys.argv[2]
+enable_bytes_retrans_plot = False
+if len(sys.argv) == 4:
+    enable_bytes_retrans_plot = bool(sys.argv[3])
+
 
 # Lists to store the extracted data
 cwnd_values = []
@@ -17,6 +21,9 @@ ssthresh_values = []
 throughput_values = []
 rtt_values = []
 timestamps = []
+bytes_retrans_values = []
+bytes_retrans_timestamps = []
+bytes_retrans_old = 0
 
 # Parse the log file
 try:
@@ -62,6 +69,20 @@ try:
                     rtt_values.append(rtt_value)
                 except (ValueError, IndexError):
                     print(f"Failed to parse RTT in line: {line.strip()}")
+
+                try:
+                    bytes_retrans_index = line.index("bytes_retrans:")
+                    bytes_retrans_value = float(line[bytes_retrans_index + len("bytes_retrans:"):].split()[0])
+                    if bytes_retrans_value != bytes_retrans_old:
+                        bytes_retrans_new = bytes_retrans_value
+                        bytes_retrans_value -= bytes_retrans_old
+                        bytes_retrans_old = bytes_retrans_new
+                        bytes_retrans_value /= 1e6 # Convert to Mb
+                        bytes_retrans_values.append(bytes_retrans_value)
+                        bytes_retrans_timestamps.append(timestamp)
+                except (ValueError, IndexError):
+                    print(f"No retrans")
+
 except FileNotFoundError:
     print(f"Error: File '{log_file}' not found.")
     sys.exit(1)
@@ -72,6 +93,9 @@ if timestamps:
 else:
     print("No valid timestamps found. Exiting.")
     sys.exit(1)
+
+if bytes_retrans_timestamps:
+    relative_bytes_retrans_time = [(t - timestamps[0]) for t in bytes_retrans_timestamps]  # Start at t = 0
 
 # Calculate mean and stddev of RTT
 mean_rtt = np.mean(rtt_values) if rtt_values else 0
@@ -94,6 +118,14 @@ if cca == "cubic":
     handles_ssthresh = [line_ssthresh]
     ax1.legend(handles=handles_cwnd + handles_ssthresh + [plt.Line2D([0], [0], color="none", label=rtt_label)], loc='upper center', bbox_to_anchor=(0.5, 1.2),
           fancybox=True, ncol=5)
+
+    if enable_bytes_retrans_plot and bytes_retrans_timestamps:
+        ax1_bytes_retrans = ax1.twinx()
+        ax1_bytes_retrans.set_ylabel("Bytes retransmitted (in Mb)", color="red")
+        ax1_bytes_retrans.scatter(relative_bytes_retrans_time, bytes_retrans_values, color="red", marker = "x")
+        ax1_bytes_retrans.tick_params(axis="y", labelcolor="red")
+        ax1_bytes_retrans.set_ylim(0, max(bytes_retrans_values) * 1.1)  # Start from 0
+
 else:
     ax1.set_ylabel("CWND (in MSS)")
     ax1.legend(handles=[plt.Line2D([0], [0], color="none", label=rtt_label)], loc='upper center', bbox_to_anchor=(0.5, 1.2),
