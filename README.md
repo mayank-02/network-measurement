@@ -63,6 +63,7 @@ This project analyzes and compares the behavior of two congestion control algori
     ```bash
     sudo apt -y update
     sudo apt install -y iperf3 python3-pip
+    sudo apt install moreutils
     ```
 
 2. Start the iperf3 server on the server machine:
