@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 def parse_iperf_log(log_file):
     # Initialize data storage for the three flows
     flows = {5201: [], 5202: [], 5203: []}
-    offsets = {5201: 0, 5202: 10, 5203: 20}
+    offsets = {5201: 0, 5202: 30, 5203: 60}
 
     # Read the log file line by line
     with open(log_file, "r") as file:

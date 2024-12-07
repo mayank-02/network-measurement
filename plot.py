@@ -9,6 +9,7 @@ if len(sys.argv) < 3:
 
 # Get the log file name
 log_file = sys.argv[1]
+flask = "flask" in log_file
 cca = sys.argv[2]
 enable_bytes_retrans_plot = False
 if len(sys.argv) == 4:
@@ -29,7 +30,8 @@ bytes_retrans_old = 0
 try:
     with open(log_file, "r") as file:
         for line in file:
-            if "cwnd:" in line and " ssthresh:" in line:
+            # if "cwnd:" in line and " ssthresh:" in line:
+            if ("cwnd:" in line) and ((flask) or (not flask and "data_segs_out:3 " not in line)):
                 try:
                     timestamp = float(line.split()[0])  # Extract the first value as timestamp
                     timestamps.append(timestamp)
@@ -52,6 +54,7 @@ try:
                     ssthresh_values.append(ssthresh_value)
                 except (ValueError, IndexError):
                     print(f"Failed to parse SSTHRESH in line: {line.strip()}")
+                    ssthresh_values.append(0)
 
                 # Parse delivery_rate (Throughput)
                 try:
@@ -61,6 +64,7 @@ try:
                     throughput_values.append(delivery_rate_value)
                 except (ValueError, IndexError):
                     print(f"Failed to parse delivery_rate in line: {line.strip()}")
+                    throughput_values.append(0)
 
                 # Parse RTT
                 try:
@@ -146,4 +150,5 @@ ax2.grid(True)
 ax2.set_ylim(0, max(throughput_values) * 1.1)  # Start from 0
 
 # Show the plots
-plt.show()
+plt.savefig("/Users/tanyasneh/Desktop/CSE222A/project/network-measurement/"+log_file[:-3]+"png", dpi=fig.dpi)
+# plt.show()
