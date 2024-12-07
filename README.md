@@ -32,6 +32,7 @@ This project analyzes and compares the behavior of two congestion control algori
    ```bash
    sudo sysctl -a | grep congest
    ```
+
 1. Switch to BBR:
    ```bash
    # Load the `tcp_bbr` module
@@ -49,6 +50,7 @@ This project analyzes and compares the behavior of two congestion control algori
    # Verify that BBR is now the active CCA
    sysctl net.ipv4.tcp_congestion_control
    ```
+
 1. Revert to the default Cubic:
    ```bash
    # Enable CUBIC as the active CCA
@@ -67,12 +69,12 @@ This project analyzes and compares the behavior of two congestion control algori
     sudo apt install moreutils
     ```
 
-2. Start the iperf3 server on the server machine:
+1. Start the iperf3 server on the server machine:
     ```bash
     iperf3 -s
     ```
 
-3. Configure network delay and packet loss at client:
+1. Configure network delay and packet loss at client:
     - Extract the interface name:
       ```bash
       ip link show
@@ -86,24 +88,46 @@ This project analyzes and compares the behavior of two congestion control algori
       sudo tc qdisc change dev <interface> root netem delay 20ms loss 0.005%
       ```
 
-4. Verify the configuration:
+1. Verify the configuration:
    ```
    tc qdisc show dev <interface>
    ```
 
-5. Monitor the network conditions:
+1. Monitor the network conditions:
    ```
    ./monitor.sh <log-file> <server-ip>
    ```
 
-5. Run the iperf3 client:
-    ```bash
-    iperf3 -c <server-ip> -t 60
-    ```
+1. Run the iperf3 client:
+   ```bash
+   iperf3 -c <server-ip> -t 60
+   ```
 
-6. Reset network conditions:
+1. Run the Flask server:
+   ```bash
+   sudo apt install python3-pip python3.12-venv
+   python3 -m venv .venv
+   source .venv/bin/activate
+   python3 -m pip install Flask
+   python3 server.py
+   ```
+
+1. Reset network conditions:
    ```
    sudo tc qdisc del dev <interface> root
+   ```
+
+1. In case of fairness analysis, run multiple iperf3 clients simultaneously.
+   ```bash
+   # Server
+   sudo tc qdisc del dev <interface> root
+   
+   # Client
+   sudo tc qdisc del dev <interface> root
+   # Add a Token Bucket Filter (TBF) with a rate of 600mbit and a delay of 20ms
+   sudo tc qdisc add dev <interface> root tbf rate 600mbit delay 20ms
+   # Run 3 iperf3 clients in the background (-c <server-ip> -p <server-port> -t <seconds> > <log-file>) 
+   (iperf3 -c <server1-ip> -p <server1-port> -t 300 > client1.log) & (sleep 10; iperf3 -c <server2-ip> -p <server2-port> -t 300 > client2.log) & (sleep 20; iperf3 -c <server3-ip> -p <server3-port> -t 300 > client3.log) &
    ```
 
 ### Data Collection

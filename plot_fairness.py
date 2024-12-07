@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 def parse_iperf_log(log_file):
     # Initialize data storage for the three flows
     flows = {5201: [], 5202: [], 5203: []}
+    # Time offsets for each flow for when they start in seconds
     offsets = {5201: 0, 5202: 30, 5203: 60}
 
     # Read the log file line by line
@@ -58,14 +59,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     log_file = sys.argv[1]
-
-    # Determine the algorithm based on the file name
-    if "bbr" in log_file:
-        algorithm = "BBR"
-    elif "cubic" in log_file:
-        algorithm = "CUBIC"
-    else:
-        algorithm = "Unknown"
 
     try:
         flow_dfs = parse_iperf_log(log_file)
